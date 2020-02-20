@@ -46,8 +46,8 @@ type ActionSpec struct {
 	// DataShape defines the consumed/produced data formats for
 	// the action
 	DataShape struct {
-		In       *Schema           `json:"int,omitempty"`
-		Out      *Schema           `json:"our,omitempty"`
+		In       *Schema           `json:"in,omitempty"`
+		Out      *Schema           `json:"out,omitempty"`
 		Metadata map[string]string `json:"metadata,omitempty"`
 	}
 
@@ -65,24 +65,33 @@ type ImplementationSpec struct {
 	// Endpoint defines an endpoint that need to be invoked to
 	// execute the action.
 	Endpoint *struct {
-		// The URL fo the service to be invoked, the special scheme
-		// `container` can be used to to reference a container defined
-		// by the `Container` struct (useful when the container should
-		// be executed as sidecar)
+		// The URL fo the service to be invoked which support go's
+		// text/templatetemplating.
+		//
+		// the special scheme `container` can be used to to reference
+		// a container defined by the `Container` struct (useful when
+		// the container should be executed as sidecar)
 		//
 		// ImplementationSpec {
 		//     Endpoint: Endpoint {
-		//	       URL: 'container://my-container/search?q=dotnet'
+		//	       URL: 'container://my-container/search?q={{.parameter-name}}'
 		//     }
 		//     Container: Container {
 		//         Name: my-container
 		//	       Image: 'my-imag'
 		//     }
 		// }
+		//
 		URL string `json:"url,omitempty"`
 
-		//TODO: add fields to configure how to bind parameters
-		//      to headers, query parmas, etc.
+		// Defines the binding of Action's parameters to the
+		// target endpoint.
+		Parameters []struct {
+			ParameterBinding `json:",inline"`
+
+			// The target, like query, header
+			Target string `json:"target,omitempty"`
+		}
 	}
 
 	// Container defines a container that implement the action,
@@ -93,8 +102,14 @@ type ImplementationSpec struct {
 		// The application container that you want to run,
 		corev1.Container `json:"container"`
 
-		//TODO: add fields to configure how to bind parameters
-		//      to headers, volumes, etc.
+		// Defines the binding of Action's parameters to the
+		// target endpoint.
+		Parameters []struct {
+			ParameterBinding `json:",inline"`
+
+			// The target environment variable
+			Target corev1.EnvVar `json:"target,omitempty"`
+		}
 	}
 
 	// Dependency defines a set of dependencies that have to be
@@ -103,7 +118,6 @@ type ImplementationSpec struct {
 		Dependencies []Dependency `json:"dependencies,omitempty"`
 
 		//TODO: add fields to configure how to bind parameters
-		//      to headers, volumes, etc.
 	}
 }
 
@@ -120,6 +134,30 @@ type Parameter struct {
 	Required    string `json:"required,omitempty"`
 	Schema      Schema `json:"schema,omitempty"`
 }
+
+// Parameter ---
+type Parameter struct {
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Required    string `json:"required,omitempty"`
+	Schema      Schema `json:"schema,omitempty"`
+}
+
+// ParameterBinding ---
+type ParameterBinding struct {
+	// The name of the parameter
+	Name string `json:"name,omitempty"`
+
+	ConfigMapKeyRef *corev1.ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
+	SecretKeyRef    *corev1.SecretKeySelector    `json:"secretKeyRef,omitempty"`
+}
+
+type EndpointTarget string
+
+const (
+	Header EndpointTarget = "header"
+	Query  EndpointTarget = "query"
+)
 
 // Schema describe the shape of data consumed or produced by the
 // Action
