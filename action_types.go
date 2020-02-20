@@ -65,16 +65,16 @@ type ImplementationSpec struct {
 	// Endpoint defines an endpoint that need to be invoked to
 	// execute the action.
 	Endpoint *struct {
-		// The URL fo the service to be invoked which support go's
-		// text/templatetemplating.
+		// The URL fo the service to be invoked which support mustache
+		// template engine for easy binding.
 		//
-		// the special scheme `container` can be used to to reference
+		// The special scheme `container` can be used to to reference
 		// a container defined by the `Container` struct (useful when
 		// the container should be executed as sidecar)
 		//
 		// ImplementationSpec {
 		//     Endpoint: Endpoint {
-		//	       URL: 'container://my-container/search?q={{.parameter-name}}'
+		//	       URL: 'container://my-container/search?q={{parameter-name}}'
 		//     }
 		//     Container: Container {
 		//         Name: my-container
