@@ -51,8 +51,8 @@ type ActionSpec struct {
 		Metadata map[string]string `json:"metadata,omitempty"`
 	}
 
-	// Parameters defines parameters required by the action to run.
-	// They can be authentication information
+	// Parameters defines parameters required by the action to be
+	// executed.
 	Parameters map[string]Parameter
 
 	ImplementationSpec `json:",inline"`
@@ -65,11 +65,24 @@ type ImplementationSpec struct {
 	// Endpoint defines an endpoint that need to be invoked to
 	// execute the action.
 	Endpoint *struct {
-		// The URL fo the service to be invoked
-		URL url.URL `json:"url,omitempty"`
+		// The URL fo the service to be invoked, the special scheme
+		// `container` can be used to to reference a container defined
+		// by the `Container` struct (useful when the container should
+		// be executed as sidecar)
+		//
+		// ImplementationSpec {
+		//     Endpoint: Endpoint {
+		//	       URL: 'container://my-container/search?q=dotnet'
+		//     }
+		//     Container: Container {
+		//         Name: my-container
+		//	       Image: 'my-imag'
+		//     }
+		// }
+		URL string `json:"url,omitempty"`
 
 		//TODO: add fields to configure how to bind parameters
-		//      to headers
+		//      to headers, query parmas, etc.
 	}
 
 	// Container defines a container that implement the action,
@@ -105,25 +118,31 @@ type Parameter struct {
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 	Required    string `json:"required,omitempty"`
-
-	// The type of the parameter, can be a simple type such as
-	// string, boolean, integer or a complex one defined by a
-	// schema.
-	Type struct {
-		Name   string
-		Schema *Schema `json:"schema,omitempty"`
-	}
+	Schema      Schema `json:"schema,omitempty"`
 }
 
 // Schema describe the shape of data consumed or produced by the
 // Action
 type Schema struct {
-	// Type specify the type of the schema stored in one of the
-	// options below
+	// Type specifies the type of the data it refers to, this field should be
+	// used for primitive types
 	Type string `json:"type,omitempty"`
+
+	// Format specifies the format of the data it refers to, for referenced values
+	// it can define format fo the schema.
+	//
+	// The example below, references a json-schema stored in a schema-registry:
+	//
+	// Schema {
+	//     Format:      'json-schema'
+	//     RegistryRef: 'http://registry/...'
+	// }
+	Format string `json:"format,omitempty"`
 
 	// RegistryRef references a schema defined in a schema registry
 	// like Apicurio Schema Registry (https://github.com/Apicurio/apicurio-registry)
+	//
+	// TODO: this could be struct with schema-registry specific bits
 	RegistryRef string `json:"registryKeyRef,omitempty"`
 
 	// ConfigMapKeyRef references a key from a ConfigMap where the scheme
