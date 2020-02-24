@@ -96,7 +96,7 @@ type BindingSpec struct {
 
 		// Container defines a container that implement the action,
 		// how to run it application specific as example it can be
-		// used to create a pod and expose it as as sePrvice ot it
+		// used to create a pod and expose it as as service ot it
 		// can run a sidecar.
 		Container *struct {
 			// The application container that you want to run,
@@ -164,11 +164,11 @@ type Metadata Metadata
 
 // Message describes
 type Message struct {
-	// Schema ---
-	Schema Schema `json:"schmes,omitempty"`
-
 	// ContentType ---
 	ContentType `json:"contentType,omitempty"`
+
+	// Schema ---
+	Schema Schema `json:"schema,omitempty"`
 
 	// Metadata ---
 	Metadata Metadata `json:"metadata,omitempty"`
