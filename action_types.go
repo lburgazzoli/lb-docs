@@ -43,28 +43,29 @@ type Action struct {
 
 // ActionSpec describe the Action.
 type ActionSpec struct {
-	// DataShape defines the consumed/produced data formats for
-	// the action
-	DataShape struct {
-		In       *Schema           `json:"in,omitempty"`
-		Out      *Schema           `json:"out,omitempty"`
-		Metadata map[string]string `json:"metadata,omitempty"`
-	}
+	//Defines the consumed/produced messages
+	Produces *Message `json:"produces,omitempty"`
+	Consumes *Message `json:"consumes,omitempty"`
 
 	// Parameters defines parameters required by the action to be
 	// executed.
 	Parameters map[string]Parameter
 
-	ImplementationSpec `json:",inline"`
-	Meta               *ImplementationSpec `json:"meta,omitempty"`
+	// Binding define the implementation detail of
+	// the Action
+	Binding *BindingSpec `json:"binding,omitempty"`
+
+	// Meta define the implementation detail of
+	// the Action metadata service
+	Meta *BindingSpec `json:"meta,omitempty"`
 }
 
-// ImplementationSpec describes the implementation details of
+// BindingSpec describes the implementation details of
 // the Action. Note that
-type ImplementationSpec struct {
-	// Endpoint defines an endpoint that need to be invoked to
+type BindingSpec struct {
+	// HTTP defines an http endpoint that need to be invoked to
 	// execute the action.
-	Endpoint *struct {
+	HTTP *struct {
 		// The URL fo the service to be invoked which support mustache
 		// template engine for easy binding.
 		//
@@ -92,32 +93,39 @@ type ImplementationSpec struct {
 			// The target, like query, header
 			Target string `json:"target,omitempty"`
 		}
-	}
 
-	// Container defines a container that implement the action,
-	// how to run it application specific as example it can be
-	// used to create a pod and expose it as as service ot it
-	// can run a sidecar.
-	Container *struct {
-		// The application container that you want to run,
-		corev1.Container `json:"container"`
+		// Container defines a container that implement the action,
+		// how to run it application specific as example it can be
+		// used to create a pod and expose it as as sePrvice ot it
+		// can run a sidecar.
+		Container *struct {
+			// The application container that you want to run,
+			corev1.Container `json:"container"`
 
-		// Defines the binding of Action's parameters to the
-		// target endpoint.
-		Parameters []struct {
-			ParameterBinding `json:",inline"`
+			// Defines the binding of Action's parameters to the
+			// target endpoint.
+			Parameters []struct {
+				ParameterBinding `json:",inline"`
 
-			// The target environment variable
-			Target corev1.EnvVar `json:"target,omitempty"`
+				// The target environment variable
+				Target corev1.EnvVar `json:"target,omitempty"`
+			}
+
+			// Metadata ---
+			Metadata Metadata `json:"metadata,omitempty"`
 		}
 	}
 
 	// Dependency defines a set of dependencies that have to be
 	// taken into account by the runtime to execute the action.
+	//
+	// How parameters are bound to the action is implementation
+	// specific.
 	Dependency *struct {
 		Dependencies []Dependency `json:"dependencies,omitempty"`
 
-		//TODO: add fields to configure how to bind parameters
+		// Metadata ---
+		Metadata Metadata `json:"metadata,omitempty"`
 	}
 }
 
@@ -132,14 +140,7 @@ type Parameter struct {
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 	Required    string `json:"required,omitempty"`
-	Schema      Schema `json:"schema,omitempty"`
-}
-
-// Parameter ---
-type Parameter struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Required    string `json:"required,omitempty"`
+	Deprecated  string `json:"deprecated,omitempty"`
 	Schema      Schema `json:"schema,omitempty"`
 }
 
@@ -159,7 +160,21 @@ const (
 	Query  EndpointTarget = "query"
 )
 
-// Schema describe the shape of data consumed or produced by the
+type Metadata Metadata
+
+// Message describes
+type Message struct {
+	// Schema ---
+	Schema Schema `json:"schmes,omitempty"`
+
+	// ContentType ---
+	ContentType `json:"contentType,omitempty"`
+
+	// Metadata ---
+	Metadata Metadata `json:"metadata,omitempty"`
+}
+
+// Schema describes the shape of message consumed or produced by the
 // Action
 type Schema struct {
 	// Type specifies the type of the data it refers to, this field should be
@@ -186,6 +201,9 @@ type Schema struct {
 	// ConfigMapKeyRef references a key from a ConfigMap where the scheme
 	// is defined. The type of the content is defined by the field Type
 	ConfigMapKeyRef *corev1.ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
+
+	// Metadata ---
+	Metadata Metadata `json:"metadata,omitempty"`
 }
 
 // ********************************************************************************
