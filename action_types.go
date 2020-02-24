@@ -63,9 +63,9 @@ type ActionSpec struct {
 // BindingSpec describes the implementation details of
 // the Action. Note that
 type BindingSpec struct {
-	// HTTP defines an http endpoint that need to be invoked to
+	// Endpoint defines an endpoint that need to be invoked to
 	// execute the action.
-	HTTP *struct {
+	Endpoint *struct {
 		// The URL fo the service to be invoked which support mustache
 		// template engine for easy binding.
 		//
@@ -85,34 +85,41 @@ type BindingSpec struct {
 		//
 		URL string `json:"url,omitempty"`
 
-		// Defines the binding of Action's parameters to the
-		// target endpoint.
-		Parameters []struct {
-			ParameterBinding `json:",inline"`
+		// Security references a security mechanic i.e. uuer/pass, api key
+		// or oauth2
+		Security string `json:"security,omitempty"`
 
-			// The target, like query, header
-			Target string `json:"target,omitempty"`
-		}
-
-		// Container defines a container that implement the action,
-		// how to run it application specific as example it can be
-		// used to create a pod and expose it as as service ot it
-		// can run a sidecar.
-		Container *struct {
-			// The application container that you want to run,
-			corev1.Container `json:"container"`
-
+		// HTTP specific binding
+		HTTP *struct {
 			// Defines the binding of Action's parameters to the
 			// target endpoint.
 			Parameters []struct {
 				ParameterBinding `json:",inline"`
 
-				// The target environment variable
-				Target corev1.EnvVar `json:"target,omitempty"`
+				// The target, like query, header
+				Target EndpointTarget `json:"target,omitempty"`
 			}
 
-			// Metadata ---
-			Metadata Metadata `json:"metadata,omitempty"`
+			// Container defines a container that implement the action,
+			// how to run it application specific as example it can be
+			// used to create a pod and expose it as as service ot it
+			// can run a sidecar.
+			Container *struct {
+				// The application container that you want to run,
+				corev1.Container `json:"container"`
+
+				// Defines the binding of Action's parameters to the
+				// target endpoint.
+				Parameters []struct {
+					ParameterBinding `json:",inline"`
+
+					// The target environment variable
+					Target corev1.EnvVar `json:"target,omitempty"`
+				}
+
+				// Metadata ---
+				Metadata Metadata `json:"metadata,omitempty"`
+			}
 		}
 	}
 
@@ -137,11 +144,12 @@ type Dependency struct {
 
 // Parameter ---
 type Parameter struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Required    string `json:"required,omitempty"`
-	Deprecated  string `json:"deprecated,omitempty"`
-	Schema      Schema `json:"schema,omitempty"`
+	Name        string   `json:"name,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Required    string   `json:"required,omitempty"`
+	Deprecated  string   `json:"deprecated,omitempty"`
+	Schema      Schema   `json:"schema,omitempty"`
+	Metadata    Metadata `json:"metadata,omitempty"`
 }
 
 // ParameterBinding ---
