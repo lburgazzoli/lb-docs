@@ -76,7 +76,7 @@ type ContainerImageSpec struct {
 	From         string   `json:"from,omitempty"`
 	Steps        []string `json:"steps,omitempty"`
 
-	// Registries ---
+	// Registry ---
 	Registry struct {
 		Insecure     bool   `json:"insecure,omitempty"`
 		Address      string `json:"address,omitempty"`
