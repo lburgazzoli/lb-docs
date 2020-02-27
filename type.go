@@ -67,6 +67,11 @@ type ContainerImageCondition struct {
 	Message string `json:"message,omitempty"`
 }
 
+// AssemblerTask ---
+type AssemblerTask struct {
+	// TBD
+}
+
 // ContainerImageSpec ---
 type ContainerImageSpec struct {
 	Dependencies []string `json:"dependencies,omitempty"`
@@ -90,9 +95,9 @@ type ContainerImageSpec struct {
 		// can use it as example to build a JVM or native image.
 		Metadata map[string]string `json:"metadata,omitempty"`
 
-		// Finalizer defines a container that assemble the resolved
-		// dependencies to the structure required by the requestor.
-		Finalizer *corev1.Container `json:"finalizer,omitempty"`
+		// Tasks defines the task that have to be execute to assemble
+		// the container.
+		Tasks []AssemblerTask `json:"tasks,omitempty"`
 
 		// Execution describe how to execute the assemble phase.
 		Execution ExecutionType `json:"execution,omitempty"`
