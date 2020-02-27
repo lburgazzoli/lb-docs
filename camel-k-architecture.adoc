@@ -1,1 +1,123 @@
-== camel-k
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= Camel K
+:toc: right
+
+The Camel K operator is based on the operator pattern and built upon the operator-sdk.
+The operator defines four CR:
+
+* **IntegrationPlatform** which configures the behavior of the operator like:
+** the camel-k-runtime version to use
+** the container registry location
+** build parameter 
+** configuration and set-up every integration should inherit
+* **IntegrationKit** describes a Container Image:
+** lists dependencies (requested, resolved)
+** lists image build configuration and set-up every integration should inherit
+* **Integration** describes the User application
+** lists the integration code
+** lists the resources and configuration an integration needs
+* **Build** describe the process to generate a container image
+
+== Integration Workflow
+
+The typical workflow of an integration is the one below:
+
+image::images/camel-k.png[]
+
+== Integration Workflow
+
+What we refer to as “Container Image Builder” is the combination of the _IntegrationKit Controller_ and the _Build Controller_.
+
+
+=== IntegrationKit
+[source,yaml]
+----
+apiVersion: camel.apache.org/v1
+kind: IntegrationKit
+metadata:
+  ...
+spec:
+  dependencies:
+  - mvn:org.apache.camel.k/camel-k-loader-groovy
+  - mvn:org.apache.camel.k/camel-k-runtime-main
+----
+
+=== Build
+[source,yaml]
+----
+apiVersion: camel.apache.org/v1
+kind: Build
+metadata:
+  ...
+spec:
+  tasks:
+  - builder:
+      baseImage: adoptopenjdk/openjdk8:slim # <1>
+      buildDir: /builder/kit-bpafk8483bbsemjvspv0
+      dependencies: <2>
+      - mvn:org.apache.camel.k/camel-k-loader-groovy
+      - mvn:org.apache.camel.k/camel-k-runtime-main
+      maven: <3>
+        localRepository: /tmp/artifacts/m2
+        settings:
+          configMapKeyRef:
+            key: settings.xml
+            name: camel-k-maven-settings
+        timeout: 3m45s
+      runtime: <4>
+        applicationClass: org.apache.camel.k.main.Application
+        dependencies:
+        - artifactId: camel-k-runtime-main
+          groupId: org.apache.camel.k
+        metadata:
+          camel-quarkus.version: 1.0.0-M3
+          camel.version: 3.0.1
+          quarkus.version: 1.2.0.Final
+        provider: main
+        version: 1.1.0
+      steps: <5>
+      - github.com/apache/camel-k/pkg/builder/CleanBuildDir
+      - github.com/apache/camel-k/pkg/builder/GenerateProjectSettings
+      - github.com/apache/camel-k/pkg/builder/InjectDependencies
+      - github.com/apache/camel-k/pkg/builder/SanitizeDependencies
+      - github.com/apache/camel-k/pkg/builder/IncrementalImageContext
+      - github.com/apache/camel-k/pkg/builder/runtime/LoadCamelCatalog
+      - github.com/apache/camel-k/pkg/builder/runtime/GenerateProject
+      - github.com/apache/camel-k/pkg/builder/runtime/ComputeDependencies
+      timeout: 5m0s
+      volumeMounts:
+      - mountPath: /builder
+        name: camel-k-builder
+      volumes:
+      - emptyDir: {}
+        name: camel-k-builder
+  - image: <6>
+      args:
+      - buildah bud --tls-verify=false --storage-driver=vfs -f Dockerfile -t 10.96.166.213/default/camel-k-kit-bpafk8483bbsemjvspv0:2235
+        . && buildah push --tls-verify=false --storage-driver=vfs --digestfile=/dev/termination-log
+        10.96.166.213/default/camel-k-kit-bpafk8483bbsemjvspv0:2235 docker://10.96.166.213/default/camel-k-kit-bpafk8483bbsemjvspv0:2235
+      builtImage: 10.96.166.213/default/camel-k-kit-bpafk8483bbsemjvspv0:2235
+      command:
+      - /bin/sh
+      - -c
+      image: quay.io/buildah/stable:v1.12.0
+      name: buildah
+      volumeMounts:
+      - mountPath: /builder
+        name: camel-k-builder
+      workingDir: /builder/kit-bpafk8483bbsemjvspv0/context
+----
+<1> the base image used to generate the final container image
+<2> dependencies
+<3> maven configuration
+<4> runtime configuration
+<5> steps
+<6> builder image
+
