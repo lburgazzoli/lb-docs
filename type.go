@@ -31,17 +31,30 @@ type ContainerImage struct {
 	Status ContainerImageStatus `json:"status,omitempty"`
 }
 
+// ExecutionType ---
 type ExecutionType string
+
+// AssemblerType ---
 type AssemblerType string
+
+// ContainerImagePhase --
 type ContainerImagePhase string
 
 const (
+	// ExecutionTypeRoutine ---
 	ExecutionTypeRoutine ExecutionType = "routine"
+
+	// ExecutionTypePod ---
 	ExecutionTypePod     ExecutionType = "pod"
+
+	// AssemblerTypeBuildah ---
 	AssemblerTypeBuildah AssemblerType = "buildah"
+
+	// AssemblerTypeTekton ---
 	AssemblerTypeTekton  AssemblerType = "tekton"
 )
 
+// ContainerImageCondition ---
 type ContainerImageCondition struct {
 	// Type of integration condition.
 	Type string `json:"type"`
