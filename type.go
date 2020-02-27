@@ -85,9 +85,9 @@ type ContainerImageSpec struct {
 		Organization string `json:"organization,omitempty"`
 	}
 
-	// Strategy define the strategy used to create the container
-	// image.
 	Strategy struct {
+		// Type define the strategy used to create the container
+		// image.
 		Type AssemblerType `json:"type,omitempty"`
 
 		// Metadata add additional context to the assembler that
