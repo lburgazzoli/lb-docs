@@ -101,6 +101,7 @@ type ContainerImageSpec struct {
 		// Execution describe how to execute the assemble phase.
 		Execution ExecutionType `json:"execution,omitempty"`
 
+		// Settings configure where mavens ettgins are stored.
 		Settings *struct {
 			// Selects a key of a ConfigMap.
 			ConfigMapKeyRef *corev1.ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
