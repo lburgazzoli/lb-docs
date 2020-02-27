@@ -100,6 +100,13 @@ type ContainerImageSpec struct {
 
 		// Execution describe how to execute the assemble phase.
 		Execution ExecutionType `json:"execution,omitempty"`
+
+		Settings *struct {
+			// Selects a key of a ConfigMap.
+			ConfigMapKeyRef *corev1.ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
+			// Selects a key of a secret.
+			SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
+		}
 	}
 }
 
