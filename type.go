@@ -78,7 +78,7 @@ type ContainerImageSpec struct {
 		Address      string `json:"address,omitempty"`
 		Secret       string `json:"secret,omitempty"`
 		CA           string `json:"ca,omitempty"`
-		Organization string `json:"organization,omitempty"`
+		Repository   string `json:"repository,omitempty"`
 	}
 
 	Strategy struct {
