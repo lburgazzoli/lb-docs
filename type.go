@@ -49,9 +49,6 @@ const (
 
 	// AssemblerTypeBuildah ---
 	AssemblerTypeBuildah AssemblerType = "buildah"
-
-	// AssemblerTypeTekton ---
-	AssemblerTypeTekton  AssemblerType = "tekton"
 )
 
 // ContainerImageCondition ---
@@ -74,7 +71,6 @@ type ContainerImageCondition struct {
 type ContainerImageSpec struct {
 	Dependencies []string `json:"dependencies,omitempty"`
 	From         string   `json:"from,omitempty"`
-	Steps        []string `json:"steps,omitempty"`
 
 	// Registry ---
 	Registry struct {
